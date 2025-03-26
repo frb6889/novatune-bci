@@ -90,7 +90,7 @@ body
   100% { transform: translateX(-50%) scale(0.8); opacity: 0.4 }
 }
 
-.key.active::after {
+/* .key.active::after {
   content: "↑";
   position: absolute;
   bottom: -45px;
@@ -99,7 +99,7 @@ body
   color: #5e44bb;
   transform: translateX(-50%);
   animation: teaching-pulse 1.5s infinite;
-}
+} */
 
 .feedback-box {
   min-height: 40px;
@@ -124,4 +124,18 @@ body
 
 .instructions ol {
   padding-left: 20px;
+}
+
+/* 下一个琴键位置指示 */
+.triangle-indicator {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid #5e44bb;  
+  position: absolute;
+  bottom: -45px; 
+  left: 50%;
+  transform: translateX(-50%);
+  animation: teaching-pulse 1.5s infinite;
 }

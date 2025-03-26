@@ -35,27 +35,39 @@ async def midi_to_websocket(websocket, path):
         print(f"监听 MIDI 设备: {target_device}")
         while True:
             msg = inport.receive()
-            if msg.type == 'note_on':
+
+            if msg.type == 'note_on':# 1.按键点击信息
                 expected_note = song_notes[current_index]
                 note = msg.note
-        
-                # 播放对应的音频文件
+
+                # 播放对应音频文件
                 if note in NOTE_SOUNDS:
                     pygame.mixer.Sound(NOTE_SOUNDS[note]).play()
 
-                result = True if msg.note == expected_note else False
+                result = True if note == expected_note else False
 
-                if msg.note == expected_note:
-                    current_index = (current_index + 1) % len(song_notes)  # 进入下一个音符
-
+                # 如果按对了 则进入下一个音符
+                if result:
+                    current_index = (current_index + 1) % len(song_notes)
 
                 data = {
                     "type": msg.type,
-                    "note": msg.note,
+                    "note": note,
                     "expected": song_notes[current_index],  # 发送下一个该弹的音符
                     "result": result
                 }
-                print("keynote:",note," result:",result)
+                print("按下:", note, "结果:", result)
+                await websocket.send(json.dumps(data))
+
+            elif msg.type == 'note_off': # 2.按键释放信息
+                
+                data = {
+                    "type": msg.type,
+                    "note": msg.note,
+                    "expected": song_notes[current_index],
+                    "result": None  # note_off 不判断正误
+                }
+                print("松开:", msg.note)
                 await websocket.send(json.dumps(data))
 
 # 启动 WebSocket 服务器

@@ -1,0 +1,127 @@
+body
+{
+  color:white;
+  /* background: linear-gradient(to bottom, #313135,#0E0E0F); */
+  background: #0E0E0F;
+  
+}
+.app {
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+
+}
+
+.piano-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 250px auto 10px;
+  padding: 0;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  display: flex;
+  justify-content: center;  /* 水平居中 */
+  align-items: center;  /* 垂直居中 */
+
+}
+
+/* 键盘整体 */
+.piano {
+  position: relative;
+  margin: 0 auto 50px;
+  display: flex;
+  height: 300px;
+  padding: 0 2%;
+}
+
+/* 白键基础样式 */
+.key.white {
+  position: relative;
+  margin-left:2px;
+  background: linear-gradient(to bottom, #F5F5F5 0%, #E6E6EA 100%);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  width: 90px;
+  height: 300px;
+  z-index: 1;
+  transition: background 0.1s;
+  box-shadow: inset 0 -5px 3px rgba(0,0,0,0.1);
+
+}
+
+
+/* 激活状态白键 */
+.key.white.active {
+  background: linear-gradient(to bottom, #F5F5F5 0%, #9DA2E5 100%);
+  
+}
+
+/* 装饰性黑键 */
+.black-key {
+  position: absolute;
+  top: 0;
+  width: 50px;
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+}
+
+/* 键位标签 */
+.key-label {
+  position: absolute;
+  bottom: 25px;
+  width: 100%;
+  text-align: center;
+  font-size: 1.1em;
+  color: #666;
+  font-family: 'Arial', sans-serif;
+}
+
+.key.active .key-label {
+  color: #111111;
+  font-weight: bold;
+}
+
+/* 教学指示动画 */
+@keyframes teaching-pulse {
+  0% { transform: translateX(-50%) scale(0.8); opacity: 0.4 }
+  50% { transform: translateX(-50%) scale(1.2); opacity: 1 }
+  100% { transform: translateX(-50%) scale(0.8); opacity: 0.4 }
+}
+
+.key.active::after {
+  content: "↑";
+  position: absolute;
+  bottom: -45px;
+  left: 50%;
+  font-size: 24px;
+  color: #5e44bb;
+  transform: translateX(-50%);
+  animation: teaching-pulse 1.5s infinite;
+}
+
+.feedback-box {
+  min-height: 40px;
+  font-size: 1.2em;
+  margin: 20px 0;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.lesson-progress {
+  color: #666;
+  margin: 10px 0;
+}
+
+.instructions {
+  margin-top: 30px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  text-align: left;
+}
+
+.instructions ol {
+  padding-left: 20px;
+}

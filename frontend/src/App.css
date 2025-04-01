@@ -11,12 +11,18 @@ body
   font-family: 'Arial', sans-serif;
 
 }
+.puzi {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  font-size: 60px;
+}
 
 .piano-container {
   position: relative;
   width: 100%;
   max-width: 800px;
-  margin: 250px auto 10px;
+  margin: 10px auto 10px;
   padding: 0;
   border-radius: 10px;
   box-shadow: 0 10px 20px rgba(0,0,0,0.2);
@@ -48,6 +54,26 @@ body
   transition: background 0.1s;
   box-shadow: inset 0 -5px 3px rgba(0,0,0,0.1);
 
+}
+
+.key.white.has-indicator {
+  position: relative;
+  background: #f0f0f0; /* 浅灰色背景 */
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 3px #ccff00; /* 橙色内边框 */
+}
+
+.key.white.has-indicator::after {
+  content: "";
+  position: absolute;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 40px;
+  background: #ccff00;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
 
 
@@ -126,16 +152,4 @@ body
   padding-left: 20px;
 }
 
-/* 下一个琴键位置指示 */
-.triangle-indicator {
-  width: 0;
-  height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 10px solid #5e44bb;  
-  position: absolute;
-  bottom: -45px; 
-  left: 50%;
-  transform: translateX(-50%);
-  animation: teaching-pulse 1.5s infinite;
-}
+

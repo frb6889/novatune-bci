@@ -8,7 +8,7 @@ print("Available MIDI output ports:")
 print(mido.get_output_names())
 
 # 
-midi_input_name = "MPK mini 3"  # 替换成实际设备名称
+midi_input_name = 'Vboard 49' # 替换成实际设备名称
 
 with mido.open_input(midi_input_name) as inport:
     print("Listening for MIDI messages...")

@@ -3,13 +3,13 @@ export const KEY_CONFIG = [
     {
         type: 'white',
         note: 53,
-        name: 'F3',
+        name: '_4',
         blackKey: null
     },
     {
         type: 'white',
         note: 55,
-        name: 'G3',
+        name: '_5',
         blackKey: {
             position: 'left',
             offset: '-40%',
@@ -19,7 +19,7 @@ export const KEY_CONFIG = [
     {
         type: 'white',
         note: 57,
-        name: 'A3',
+        name: '_6',
         blackKey: {
             position: 'left',
             offset: '-29%',
@@ -29,7 +29,7 @@ export const KEY_CONFIG = [
     {
         type: 'white',
         note: 59,
-        name: 'B3',
+        name: '_7',
         blackKey: {
             position: 'left',
             offset: '-20%',
@@ -39,13 +39,13 @@ export const KEY_CONFIG = [
     {
         type: 'white',
         note: 60,
-        name: 'C4',
+        name: '1',
         blackKey: null
-    },
+    }, //C4
     {
         type: 'white',
         note: 62,
-        name: 'D4',
+        name: '2',
         blackKey: {
             position: 'left',
             offset: '-40%',
@@ -55,7 +55,7 @@ export const KEY_CONFIG = [
     {
         type: 'white',
         note: 64,
-        name: 'E4',
+        name: '3',
         blackKey: {
             position: 'left',
             offset: '-20%',
@@ -65,13 +65,13 @@ export const KEY_CONFIG = [
     {
         type: 'white',
         note: 65,
-        name: 'F4',
+        name: '4',
         blackKey: null
     },
     {
         type: 'white',
         note: 67,
-        name: 'G4',
+        name: '5',
         blackKey: {
             position: 'left',
             offset: '-40%',
@@ -81,7 +81,7 @@ export const KEY_CONFIG = [
     {
         type: 'white',
         note: 69,
-        name: 'A4',
+        name: '6',
         blackKey: {
             position: 'left',
             offset: '-29%',
@@ -91,7 +91,7 @@ export const KEY_CONFIG = [
     {
         type: 'white',
         note: 71,
-        name: 'B4',
+        name: '7',
         blackKey: {
             position: 'left',
             offset: '-20%',
@@ -101,13 +101,13 @@ export const KEY_CONFIG = [
     {
         type: 'white',
         note: 72,
-        name: 'C5',
+        name: '·1',
         blackKey: null
     },
     {
         type: 'white',
         note: 74,
-        name: 'D5',
+        name: '·2',
         blackKey: {
             position: 'left',
             offset: '-40%',
@@ -117,7 +117,7 @@ export const KEY_CONFIG = [
     {
         type: 'white',
         note: 76,
-        name: 'E5',
+        name: '·3',
         blackKey: {
             position: 'left',
             offset: '-20%',

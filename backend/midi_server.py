@@ -1,6 +1,6 @@
 
-#NEO:获取trigger box
-""" from device.trigger_box import TriggerNeuracle """
+# NEO:获取trigger box
+# from device.trigger_box import TriggerNeuracle
 import mido
 import asyncio
 import websockets
@@ -11,53 +11,17 @@ import pygame
 pygame.mixer.init()
 
 # NEO:trigger box端口号
-""" trigger = TriggerNeuracle(port='COM6')   """
+# trigger = TriggerNeuracle(port='COM6')
 
 MIDI_DEVICE_NAME = "Vboard 49"
 WEBSOCKET_PORT = 8765
 
-# 琴键对应
-NOTE_SOUNDS = {
+# 琴键对应wav
+with open("data/note_sounds.json", "r") as f:
+    NOTE_SOUNDS = json.load(f)
+NOTE_SOUNDS = {int(k): v for k, v in NOTE_SOUNDS.items()}
 
-    # C#2 (37) 到 B3 (47)
-    37: "sound/37_C#2.wav",
-    38: "sound/38_D2.wav",
-    39: "sound/39_D#2.wav",
-    40: "sound/40_E2.wav",
-    41: "sound/41_F2.wav",
-    42: "sound/42_F#2.wav",
-    43: "sound/43_G2.wav",
-    44: "sound/44_G#2.wav",
-    45: "sound/45_A3.wav",
-    46: "sound/46_A#3.wav",
-    47: "sound/47_B3.wav",
-    
-    # C3 (48) 到 G3 (55)
-    48: "sound/C3.wav",
-    50: "sound/D3.wav",
-    52: "sound/E3.wav",
-    53: "sound/F3.wav",
-    55: "sound/G3.wav",
-    57: "sound/A4.wav",
-    59: "sound/B4.wav",
-    
-    # C4 (60) 到 G4 (67)
-    60: "sound/C4.wav",
-    62: "sound/D4.wav",
-    64: "sound/E4.wav",
-    65: "sound/F4.wav",
-    67: "sound/G4.wav",
-    69: "sound/A5.wav",
-    71: "sound/B5.wav",
-
-    # C5 (72) 到 G5 (79)
-    72: "sound/C5.wav",
-    74: "sound/D5.wav",
-    76: "sound/E5.wav",
-    77: "sound/F5.wav",
-    79: "sound/G5.wav"
-}
-
+ 
 # 字典
 TRIGGER_MAPPING = {
     48: 0x01,

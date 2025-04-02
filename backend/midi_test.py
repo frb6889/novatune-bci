@@ -1,9 +1,15 @@
+#NEO:获取trigger box
+""" from device.trigger_box import TriggerNeuracle """
 import mido
 import pygame
 import pygame.freetype
 import sys
 import json
 from song_loader import load_song
+
+
+# NEO:trigger box端口号
+""" trigger = TriggerNeuracle(port='COM6')   """
 
 # 加载歌曲
 song_name = "dongfanghong"
@@ -161,6 +167,12 @@ while running:
                     pygame.mixer.Sound(NOTE_SOUNDS[note]).play()
                 except Exception as e:
                     print(f"播放声音错误: {e}")
+            # NEO:每次琴键输入时，发送对应的 trigger
+            """ if note in TRIGGER_MAPPING:
+                    trigger_value = TRIGGER_MAPPING[note]
+                    trigger.send_trigger(trigger_value)
+                    print(f"发送 trigger: {hex(trigger_value)} 对应音符: {note}") """
+
             # 更新显示按键与结果
             display_pressed = note
             expected_note = song_notes[current_index]

@@ -18,6 +18,20 @@ WEBSOCKET_PORT = 8765
 
 # 琴键对应
 NOTE_SOUNDS = {
+
+    # C#2 (37) 到 B3 (47)
+    37: "sound/37_C#2.wav",
+    38: "sound/38_D2.wav",
+    39: "sound/39_D#2.wav",
+    40: "sound/40_E2.wav",
+    41: "sound/41_F2.wav",
+    42: "sound/42_F#2.wav",
+    43: "sound/43_G2.wav",
+    44: "sound/44_G#2.wav",
+    45: "sound/45_A3.wav",
+    46: "sound/46_A#3.wav",
+    47: "sound/47_B3.wav",
+    
     # C3 (48) 到 G3 (55)
     48: "sound/C3.wav",
     50: "sound/D3.wav",

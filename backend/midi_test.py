@@ -72,7 +72,7 @@ print(f"监听 MIDI 设备: {target_device}")
 
 # *** pygame初始化 ***
 pygame.init()
-WIDTH, HEIGHT = 1200, 800
+WIDTH, HEIGHT = 1300, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("MIDI 练习界面")
 
@@ -104,6 +104,30 @@ try:
 except Exception as e:
     print(f"加载完成提示图片失败: {e}")
     finish_alert = None
+# 加载section图片
+
+section_1_pic = pygame.image.load("pygame_img/section_1.png").convert_alpha()
+section_2_pic = pygame.image.load("pygame_img/section_2.png").convert_alpha()
+section_3_pic = pygame.image.load("pygame_img/section_3.png").convert_alpha()
+section_4_pic = pygame.image.load("pygame_img/section_4.png").convert_alpha()
+section_5_pic = pygame.image.load("pygame_img/section_5.png").convert_alpha()
+section_6_pic = pygame.image.load("pygame_img/section_6.png").convert_alpha()
+section_all_pic = pygame.image.load("pygame_img/section_all.png").convert_alpha()
+section_w, section_h = section_1_pic.get_size()
+scale = 0.6
+section_1_pic = pygame.transform.scale(section_1_pic, (section_w * scale, section_h * scale))
+section_2_pic = pygame.transform.scale(section_2_pic, (section_w * scale, section_h * scale))
+section_3_pic = pygame.transform.scale(section_3_pic, (section_w * scale, section_h * scale))
+section_4_pic = pygame.transform.scale(section_4_pic, (section_w * scale, section_h * scale))
+section_5_pic = pygame.transform.scale(section_5_pic, (section_w * scale, section_h * scale))
+section_6_pic = pygame.transform.scale(section_6_pic, (section_w * scale, section_h * scale))
+section_all_pic = pygame.transform.scale(section_all_pic, (section_w * scale, section_h * scale))
+
+# 创建列表方便调用
+section_images = [
+    section_1_pic, section_2_pic, section_3_pic, section_4_pic, section_5_pic, section_6_pic, section_all_pic
+    ]
+
 
 # *** 当前段落和音符索引 ***
 current_section = 0
@@ -203,6 +227,7 @@ while running:
                     finish_alert_active = True
                     finish_alert_start = pygame.time.get_ticks()
                     finish_alert_cancelable = False  # 新输入不能马上取消提示
+
             else:
                 display_expected = expected_note
 
@@ -220,8 +245,10 @@ while running:
 
     # 文本信息
     # 1. 当前段落
-    section_text, _ = font.render(f"SECTION: {current_section + 1}", MAIN_COLOR)
-    screen.blit(section_text, (WIDTH/2-100, 20))
+    # screen.blit("section_{current_section+1}_pic",(WIDTH/2-100, 20))
+    if 0 <= current_section <= len(section_images):
+        section_img = section_images[current_section]
+        screen.blit(section_img, (WIDTH/2-120, 50))
 
     # 2. 下一个expect输入音节
     expected_text, _ = font.render(f"expect: {display_expected}", BLACK)
@@ -242,6 +269,7 @@ while running:
     result_color = GREEN if display_result else RED if display_result is not None else BLACK
     result_text, _ = font.render(f"result: {result_str}", result_color)
     screen.blit(result_text, (50, 140))
+    
 
     # 绘制expect指示标记
     try:
@@ -250,10 +278,10 @@ while running:
             x = key_index * key_width
             y = 550
 
-            triangle_size = 30
+            triangle_size = 40
             triangle_top = (int(x + key_width / 2), int(y - triangle_size))
-            triangle_left = (int(x + key_width / 4), int(y - 5))
-            triangle_right = (int(x + 3 * key_width / 4), int(y - 5))
+            triangle_left = (int(x + key_width / 4 - 10 ), int(y - 5))
+            triangle_right = (int(x + 3 * key_width / 4 + 10), int(y - 5))
             pygame.draw.polygon(screen, MAIN_COLOR, [triangle_top, triangle_left, triangle_right])
     except Exception as e:
         print(f"绘制指示标记错误: {e}")

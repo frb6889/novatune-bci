@@ -81,7 +81,8 @@ font = pygame.freetype.SysFont(None, 24)
 clock = pygame.time.Clock()
 
 
-# 加载键盘图
+# *** 加载图片 ***
+# 1.加载键盘图
 try:
     keyboard_img = pygame.image.load("pygame_img/keys.png").convert_alpha()
     img_width, img_height = keyboard_img.get_size()
@@ -89,12 +90,12 @@ try:
     keyboard_img = pygame.transform.scale(keyboard_img, (int(img_width * scale), int(img_height * scale)))
 
     x_offset = (WIDTH - int(img_width * scale)) // 2
-    y_offset = (HEIGHT - int(img_height * scale)) // 2
+    y_offset = (HEIGHT - int(img_height * scale)) // 2 + 50
 except Exception as e:
     print(f"加载背景图片失败: {e}")
     sys.exit()
 
-# 加载完成提示图片finish_alert.png
+# 2.加载完成提示图片finish_alert.png
 try:
     finish_alert = pygame.image.load("pygame_img/finish_alert.png").convert_alpha()
     finish_alert_w, finish_alert_h = finish_alert.get_size()
@@ -104,30 +105,37 @@ try:
 except Exception as e:
     print(f"加载完成提示图片失败: {e}")
     finish_alert = None
-# 加载section图片
 
-section_1_pic = pygame.image.load("pygame_img/section_1.png").convert_alpha()
-section_2_pic = pygame.image.load("pygame_img/section_2.png").convert_alpha()
-section_3_pic = pygame.image.load("pygame_img/section_3.png").convert_alpha()
-section_4_pic = pygame.image.load("pygame_img/section_4.png").convert_alpha()
-section_5_pic = pygame.image.load("pygame_img/section_5.png").convert_alpha()
-section_6_pic = pygame.image.load("pygame_img/section_6.png").convert_alpha()
-section_all_pic = pygame.image.load("pygame_img/section_all.png").convert_alpha()
-section_w, section_h = section_1_pic.get_size()
 scale = 0.6
-section_1_pic = pygame.transform.scale(section_1_pic, (section_w * scale, section_h * scale))
-section_2_pic = pygame.transform.scale(section_2_pic, (section_w * scale, section_h * scale))
-section_3_pic = pygame.transform.scale(section_3_pic, (section_w * scale, section_h * scale))
-section_4_pic = pygame.transform.scale(section_4_pic, (section_w * scale, section_h * scale))
-section_5_pic = pygame.transform.scale(section_5_pic, (section_w * scale, section_h * scale))
-section_6_pic = pygame.transform.scale(section_6_pic, (section_w * scale, section_h * scale))
-section_all_pic = pygame.transform.scale(section_all_pic, (section_w * scale, section_h * scale))
+# 3.加载section图片
+section_images = []
+num_sections = len(song_sections)
+for i in range(num_sections):
+    image_path = f"pygame_img/section_{i+1}.png"
+    
+    try:
+        img = pygame.image.load(image_path).convert_alpha()
+        section_w, section_h = img.get_size()
+        img = pygame.transform.scale(img, (section_w * scale, section_h * scale))
+        section_images.append(img)
+    except Exception as e:
+        print(f"加载简谱图片失败 ({image_path}): {e}")
+        section_images.append(None)
 
-# 创建列表方便调用
-section_images = [
-    section_1_pic, section_2_pic, section_3_pic, section_4_pic, section_5_pic, section_6_pic, section_all_pic
-    ]
 
+
+#4.加载简谱图片
+jianpu_images = []
+for i in range(num_sections):
+    image_path = f"pygame_img/jianpu/dongfanghong_{i+1}.png"
+    try:
+        img = pygame.image.load(image_path).convert_alpha()
+        jpimg_w, jpimg_h = img.get_size()
+        img = pygame.transform.scale(img, (jpimg_w * scale, jpimg_h * scale))
+        jianpu_images.append(img)
+    except Exception as e:
+        print(f"加载简谱图片失败 ({image_path}): {e}")
+        jianpu_images.append(None)
 
 # *** 当前段落和音符索引 ***
 current_section = 0
@@ -160,8 +168,8 @@ GRAY = (200, 200, 200)
 piano_keys = sorted(NOTE_SOUNDS.keys())
 num_keys = len(piano_keys)
 key_width = WIDTH / 21
-key_height = 650
-piano_y = HEIGHT - key_height
+key_height = y_offset
+piano_y = key_height
 
 # -------------------------
 # 主循环：监听 MIDI 并更新界面
@@ -241,15 +249,22 @@ while running:
     # 界面
     # -------------------------
     screen.fill(WHITE)
+    # 0. 钢琴图片
     screen.blit(keyboard_img, (x_offset, y_offset))
 
     # 文本信息
+
+    # 0.5. 显示谱子
+    if 0 <= current_section < len(jianpu_images) and jianpu_images[current_section] is not None:
+        screen.blit(jianpu_images[current_section], (WIDTH/2-250, 100))
+
     # 1. 当前段落
     # screen.blit("section_{current_section+1}_pic",(WIDTH/2-100, 20))
     if 0 <= current_section <= len(section_images):
         section_img = section_images[current_section]
         screen.blit(section_img, (WIDTH/2-120, 50))
 
+    
     # 2. 下一个expect输入音节
     expected_text, _ = font.render(f"expect: {display_expected}", BLACK)
     screen.blit(expected_text, (50, 60))
@@ -276,7 +291,7 @@ while running:
         if display_expected in piano_keys:
             key_index = note_to_index[display_expected]
             x = key_index * key_width
-            y = 550
+            y = piano_y + 270
 
             triangle_size = 40
             triangle_top = (int(x + key_width / 2), int(y - triangle_size))

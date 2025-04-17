@@ -1,34 +1,71 @@
-# NEO:获取trigger box
-# from device.trigger_box import TriggerNeuracle
 import mido
 import pygame
 import pygame.freetype
 import sys
 import json
+import time
+import serial 
 from song_loader import load_song
 
-# NEO:trigger box端口号
+# NEO:获取trigger box
 # from device.trigger_box import TriggerNeuracle
 # trigger = TriggerNeuracle(port='COM6')
 
 
 # *** MIDI和钢琴相关初始化 ***
 pygame.mixer.init()
+ser = serial.Serial('/dev/cu.usbmodem144401', 9600, timeout=0.1)
 
-MIDI_DEVICE_NAME = "Vboard 49"
 
-song_name = "dongfanghong"
-song_sections = load_song(song_name)
-if song_sections:
-    print(f"已加载曲子 '{song_name}': {song_sections}")
-else:
-    print(f"加载曲子 '{song_name}' 失败")
-    sys.exit()
+MIDI_DEVICE_NAME = mido.get_input_names()[0]
 
-# 用来映射琴键位置的json
+
+# 谱子与时值，后者默认为1
+song_sections = [
+    [(67, 1), (67, 0.5), (69, 0.5), (62, 2), (60, 1), (60, 0.5), (57, 0.5), (62, 2)],
+    [(67, 1), (67, 1), (69, 0.5), (72, 0.5), (69, 0.5), (67, 0.5), (60, 1), (60, 0.5), (57, 0.5), (62, 2)],
+    [(67, 1), (62, 1), (60, 1), (59, 0.5), (57, 0.5), (55, 1), (67, 1), (62, 1)],
+    [(64, 0.5), (62, 0.5), (60, 1), (60, 0.5), (57, 0.5), (62, 0.5), (64, 0.5), (62, 0.5),
+     (60, 0.5), (62, 0.5), (60, 0.5), (59, 0.5), (57, 0.5), (55, 2)],
+    [(67, 1), (62, 1), (60, 1), (59, 0.5), (57, 0.5), (55, 1), (67, 1), (62, 1)],
+    [(64, 0.5), (62, 0.5), (60, 1), (60, 0.5), (57, 0.5), (62, 0.5), (64, 0.5), (62, 0.5),
+     (60, 0.5), (74, 0.5), (72, 0.5), (71, 0.5), (69, 0.5), (67, 2)],
+    [
+        (67, 1), (67, 0.5), (69, 0.5), (62, 2), (60, 1), (60, 0.5), (57, 0.5), (62, 2),
+        (67, 1), (67, 1), (69, 0.5), (72, 0.5), (69, 0.5), (67, 0.5), (60, 1), (60, 0.5), (57, 0.5), (62, 2),
+        (67, 1), (62, 1), (60, 1), (59, 0.5), (57, 0.5), (55, 1), (67, 1), (62, 1),
+        (64, 0.5), (62, 0.5), (60, 1), (60, 0.5), (57, 0.5), (62, 0.5), (64, 0.5), (62, 0.5),
+        (60, 0.5), (62, 0.5), (60, 0.5), (59, 0.5), (57, 0.5), (55, 2),
+        (67, 1), (62, 1), (60, 1), (59, 0.5), (57, 0.5), (55, 1), (67, 1), (62, 1),
+        (64, 0.5), (62, 0.5), (60, 1), (60, 0.5), (57, 0.5), (62, 0.5), (64, 0.5), (62, 0.5),
+        (60, 0.5), (74, 0.5), (72, 0.5), (71, 0.5), (69, 0.5), (67, 2),
+    ]
+]
+
+# 原本的 load_song 函数：
+# song_name = "dongfanghong"
+# song_sections = load_song(song_name)
+# if song_sections:
+#     print(f"已加载曲子 '{song_name}': {song_sections}")
+# else:
+#     print(f"加载曲子 '{song_name}' 失败")
+#     sys.exit()
+
+
 with open("data/note_to_index.json", "r") as f:
     note_to_index = json.load(f)
 note_to_index = {int(k): v for k, v in note_to_index.items()}
+
+# --- LED 控制函数 ---
+def set_led(idx, brightness):
+    """发送 idx,brightness 到 Arduino，点亮/调暗一颗 LED"""
+    cmd = f"{idx},{brightness}\n"
+    ser.write(cmd.encode())
+
+def clear_leds():
+    """全灭所有 LED"""
+    for i in range(21):
+        set_led(i, 0)
 
 # 琴键对应的音频文件
 with open("data/note_sounds.json", "r") as f:
@@ -37,25 +74,10 @@ NOTE_SOUNDS = {int(k): v for k, v in NOTE_SOUNDS.items()}
 
 # trigger 对应字典
 TRIGGER_MAPPING = {
-    48: 0x01,
-    50: 0x02,
-    52: 0x03,
-    53: 0x04,
-    55: 0x05,
-    57: 0x06,
-    59: 0x07,
-    60: 0x08,
-    62: 0x09,
-    64: 0x0A,
-    65: 0x0B,
-    67: 0x0C,
-    69: 0x0D,
-    71: 0x0E,
-    72: 0x0F,
-    74: 0x10,
-    76: 0x11,
-    77: 0x12,
-    79: 0x13,
+    48: 0x01, 50: 0x02, 52: 0x03, 53: 0x04, 55: 0x05,
+    57: 0x06, 59: 0x07, 60: 0x08, 62: 0x09, 64: 0x0A,
+    65: 0x0B, 67: 0x0C, 69: 0x0D, 71: 0x0E, 72: 0x0F,
+    74: 0x10, 76: 0x11, 77: 0x12, 79: 0x13,
 }
 
 # 打开 MIDI 设备
@@ -64,148 +86,130 @@ target_device = next((name for name in input_names if MIDI_DEVICE_NAME in name),
 if not target_device:
     print(f"未找到设备: {MIDI_DEVICE_NAME}")
     sys.exit()
-
 inport = mido.open_input(target_device)
 print(f"监听 MIDI 设备: {target_device}")
 
-
-
-# *** pygame初始化 ***
+# *** pygame 初始化 ***
 pygame.init()
 WIDTH, HEIGHT = 1300, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("MIDI 练习界面")
-
-# TODO: 字体正确性
 font = pygame.freetype.SysFont(None, 24)
 clock = pygame.time.Clock()
 
-
 # *** 加载图片 ***
-# 1.加载键盘图
 try:
     keyboard_img = pygame.image.load("pygame_img/keys.png").convert_alpha()
-    img_width, img_height = keyboard_img.get_size()
-    scale = min(WIDTH / img_width, HEIGHT / img_height)
-    keyboard_img = pygame.transform.scale(keyboard_img, (int(img_width * scale), int(img_height * scale)))
-
-    x_offset = (WIDTH - int(img_width * scale)) // 2
-    y_offset = (HEIGHT - int(img_height * scale)) // 2 + 50
+    img_w, img_h = keyboard_img.get_size()
+    scale = min(WIDTH/img_w, HEIGHT/img_h)
+    keyboard_img = pygame.transform.scale(keyboard_img, (int(img_w*scale), int(img_h*scale)))
+    x_offset = (WIDTH - int(img_w*scale)) // 2
+    y_offset = (HEIGHT - int(img_h*scale)) // 2 + 50
 except Exception as e:
     print(f"加载背景图片失败: {e}")
     sys.exit()
 
-# 2.加载完成提示图片finish_alert.png
 try:
     finish_alert = pygame.image.load("pygame_img/finish_alert.png").convert_alpha()
-    finish_alert_w, finish_alert_h = finish_alert.get_size()
-    scale = 0.4
-    
-    finish_alert = pygame.transform.scale(finish_alert, (finish_alert_w * scale, finish_alert_h * scale))
-except Exception as e:
-    print(f"加载完成提示图片失败: {e}")
+    fw, fh = finish_alert.get_size()
+    finish_alert = pygame.transform.scale(finish_alert, (int(fw*0.4), int(fh*0.4)))
+except Exception:
     finish_alert = None
 
 scale = 0.6
-# 3.加载section图片
 section_images = []
 num_sections = len(song_sections)
 for i in range(num_sections):
-    image_path = f"pygame_img/section_{i+1}.png"
-    
+    path = f"pygame_img/section_{i+1}.png"
     try:
-        img = pygame.image.load(image_path).convert_alpha()
-        section_w, section_h = img.get_size()
-        img = pygame.transform.scale(img, (section_w * scale, section_h * scale))
-        section_images.append(img)
-    except Exception as e:
-        print(f"加载简谱图片失败 ({image_path}): {e}")
+        img = pygame.image.load(path).convert_alpha()
+        w,h = img.get_size()
+        section_images.append(pygame.transform.scale(img, (int(w*scale), int(h*scale))))
+    except:
         section_images.append(None)
 
-
-
-#4.加载简谱图片
 jianpu_images = []
 for i in range(num_sections):
-    image_path = f"pygame_img/jianpu/dongfanghong_{i+1}.png"
+    path = f"pygame_img/jianpu/dongfanghong_{i+1}.png"
     try:
-        img = pygame.image.load(image_path).convert_alpha()
-        jpimg_w, jpimg_h = img.get_size()
-        img = pygame.transform.scale(img, (jpimg_w * scale, jpimg_h * scale))
-        jianpu_images.append(img)
-    except Exception as e:
-        print(f"加载简谱图片失败 ({image_path}): {e}")
+        img = pygame.image.load(path).convert_alpha()
+        w,h = img.get_size()
+        jianpu_images.append(pygame.transform.scale(img, (int(w*scale), int(h*scale))))
+    except:
         jianpu_images.append(None)
 
 # *** 当前段落和音符索引 ***
 current_section = 0
-current_index = 0
-song_notes = song_sections[current_section]
+current_index   = 0
+song_notes      = song_sections[current_section]
+expected_note, expected_duration = song_notes[current_index]
 
-# 界面显示变量：当前期待的音符、按下的音符、判断结果
-display_expected = song_notes[current_index]
+# 界面显示变量
 display_pressed = None
-display_result = None
+display_result  = None
 
-# 用于提示完成段落的变量
-section_complete = False
-finish_alert_active = False  # 当段落完成时激活提示
-finish_alert_start = 0       # 记录提示开始时间（用来防止段落末尾的input影响提示显示情况）
-finish_alert_cancelable = False  # 是否允许新输入取消提示（用来防止段落末尾的input影响提示显示情况）
+# --- LED初始: 点亮第一颗expect灯
+clear_leds()
+set_led(note_to_index[expected_note], 255)
 
+# --- LED: 计时控制
+timing_active = False
+timer_start   = 0
 
+# 完成提示控制
+section_complete     = False
+finish_alert_active  = False
+finish_alert_start   = 0
+finish_alert_cancelable = False
 
-# 颜色
+# 颜色定义
 MAIN_COLOR = (99, 76, 255)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-GRAY = (200, 200, 200)
+WHITE      = (255,255,255)
+BLACK      = (0,0,0)
+GREEN      = (0,255,0)
+RED        = (255,0,0)
 
-# 钢琴键列表
+# 钢琴键索引
 piano_keys = sorted(NOTE_SOUNDS.keys())
-num_keys = len(piano_keys)
-key_width = WIDTH / 21
-key_height = y_offset
-piano_y = key_height
+key_width  = WIDTH / 21
+piano_y    = y_offset
 
 # -------------------------
 # 主循环：监听 MIDI 并更新界面
 # -------------------------
 running = True
 while running:
-
-    new_input_detected = False
-
-    # pygame事件
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    new_input = False
+    for evt in pygame.event.get():
+        if evt.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            new_input_detected = True
+        elif evt.type == pygame.KEYDOWN:
+            new_input = True
 
-    # MIDI事件
     msg = inport.poll()
-    if msg is not None:
-        new_input_detected = True
-        # 控制指令：note36切换上一段，84切换下一段
+
+
+    if msg:
+
+        new_input = True
         if msg.type == 'note_on' and msg.note in (36, 84):
+            # 切换段落
             if msg.note == 36:
                 current_section = (current_section - 1) % len(song_sections)
-                print(f"切换到上一段: 第 {current_section + 1} 段")
-            elif msg.note == 84:
+            else:
                 current_section = (current_section + 1) % len(song_sections)
-                print(f"切换到下一段: 第 {current_section + 1} 段")
             song_notes = song_sections[current_section]
             current_index = 0
-            display_expected = song_notes[current_index]
+            expected_note, expected_duration = song_notes[current_index]
             display_pressed = None
-            display_result = None
-            section_complete = False
+            display_result  = None
+            timing_active   = False
+            # 重点亮新段第一灯
+            clear_leds()
+            set_led(note_to_index[expected_note], 255)
             finish_alert_active = False
             finish_alert_cancelable = False
+
         elif msg.type == 'note_on':
             note = msg.note
             if note in NOTE_SOUNDS:
@@ -213,119 +217,92 @@ while running:
                     pygame.mixer.Sound(NOTE_SOUNDS[note]).play()
                     # NEO:每次琴键输入时，发送对应的 trigger
                     """ if note in TRIGGER_MAPPING:
-                        trigger_value = TRIGGER_MAPPING[note]
-                        trigger.send_trigger(trigger_value)
-                        print(f"发送 trigger: {hex(trigger_value)} 对应音符: {note}") """
-                except Exception as e:
-                    print(f"播放声音错误: {e}")
+                        trig = TRIGGER_MAPPING[note]
+                        trigger.send_trigger(trig)
+                    """
+                except:
+                    pass
 
-            # 更新显示按键与结果
             display_pressed = note
-            expected_note = song_notes[current_index]
-            is_correct = (note == expected_note)
-            display_result = is_correct
-            if is_correct:
-                current_index = (current_index + 1) % len(song_notes)
-                display_expected = song_notes[current_index]
-
-                # 若段落完成
-                if current_index == 0:
-                    
-                    section_complete = True
-                    finish_alert_active = True
-                    finish_alert_start = pygame.time.get_ticks()
-                    finish_alert_cancelable = False  # 新输入不能马上取消提示
-
+            if not timing_active and note == expected_note:
+                # 按对，开始计时
+                display_result = True
+                timing_active  = True
+                timer_start    = time.time()
             else:
-                display_expected = expected_note
+                display_result = False
 
-    # 如果finish_alert_active已激活，并且已经经过500ms延迟，允许取消提示
-    if finish_alert_active:
-        current_time = pygame.time.get_ticks()
-        if current_time - finish_alert_start >= 500:
+    # 计时完成后切换到下一个
+    if timing_active:
+        if time.time() - timer_start >= expected_duration:
+            clear_leds()
+            current_index = (current_index + 1) % len(song_notes)
+            expected_note, expected_duration = song_notes[current_index]
+            set_led(note_to_index[expected_note], 255)
+            timing_active    = False
+            display_pressed  = None
+            display_result   = None
+            if current_index == 0:
+                finish_alert_active = True
+                finish_alert_start  = pygame.time.get_ticks()
+                finish_alert_cancelable = False
+
+    # 处理完成提示
+    if finish_alert_active and finish_alert:
+        if pygame.time.get_ticks() - finish_alert_start >= 500:
             finish_alert_cancelable = True
+        if finish_alert_cancelable and new_input:
+            finish_alert_active = False
 
-    # -------------------------
-    # 界面
-    # -------------------------
+    # 渲染界面
     screen.fill(WHITE)
-    # 0. 钢琴图片
     screen.blit(keyboard_img, (x_offset, y_offset))
-
-    # 文本信息
-
-    # 0.5. 显示谱子
-    if 0 <= current_section < len(jianpu_images) and jianpu_images[current_section] is not None:
+    if 0 <= current_section < len(jianpu_images) and jianpu_images[current_section]:
         screen.blit(jianpu_images[current_section], (WIDTH/2-250, 100))
+    if 0 <= current_section < len(section_images) and section_images[current_section]:
+        screen.blit(section_images[current_section], (WIDTH/2-120, 50))
 
-    # 1. 当前段落
-    # screen.blit("section_{current_section+1}_pic",(WIDTH/2-100, 20))
-    if 0 <= current_section <= len(section_images):
-        section_img = section_images[current_section]
-        screen.blit(section_img, (WIDTH/2-120, 50))
+    exp_surf, _ = font.render(f"expect: {expected_note} (note duration: {expected_duration})", BLACK)
+    screen.blit(exp_surf, (50, 60))
+    pres_surf, _ = font.render(f"pressed: {display_pressed or '-'}", GREEN if display_result else RED if display_result is not None else BLACK)
+    screen.blit(pres_surf, (50, 100))
+    res = "Correct!" if display_result else "False.." if display_result is not None else "waiting for input..."
+    res_surf, _ = font.render(f"result: {res}", GREEN if display_result else RED if display_result is not None else BLACK)
+    screen.blit(res_surf, (50, 140))
 
-    
-    # 2. 下一个expect输入音节
-    expected_text, _ = font.render(f"expect: {display_expected}", BLACK)
-    screen.blit(expected_text, (50, 60))
-
-    # 3. 当前输入音节
-    pressed_str = str(display_pressed) if display_pressed is not None else "-"
-    color = GREEN if display_result else RED if display_result is not None else BLACK
-
-    pressed_text, _ = font.render(f"pressed: {pressed_str}", color)
-    screen.blit(pressed_text, (50, 100))
-
-    # 4. 当前音节是否正确
-    if display_result is None:
-        result_str = "waiting for input..."
-    else:
-        result_str = "Correct!" if display_result else "False.."
-    result_color = GREEN if display_result else RED if display_result is not None else BLACK
-    result_text, _ = font.render(f"result: {result_str}", result_color)
-    screen.blit(result_text, (50, 140))
-    
-
-    # 绘制expect指示标记
+    # expect 指示三角
     try:
-        if display_expected in piano_keys:
-            key_index = note_to_index[display_expected]
-            x = key_index * key_width
+        if expected_note in piano_keys:
+            kidx = note_to_index[expected_note]
+            x = kidx * key_width
             y = piano_y + 270
-
-            triangle_size = 40
-            triangle_top = (int(x + key_width / 2), int(y - triangle_size))
-            triangle_left = (int(x + key_width / 4 - 10 ), int(y - 5))
-            triangle_right = (int(x + 3 * key_width / 4 + 10), int(y - 5))
-            pygame.draw.polygon(screen, MAIN_COLOR, [triangle_top, triangle_left, triangle_right])
+            ts = 40
+            pts = [(x+key_width/2, y-ts), (x+key_width/4-10, y-5), (x+3*key_width/4+10, y-5)]
+            pygame.draw.polygon(screen, MAIN_COLOR, [(int(px),int(py)) for px,py in pts])
     except Exception as e:
         print(f"绘制指示标记错误: {e}")
 
-    # 绘制按键标记：正确为绿圆圈，错误为红圆圈
+    # 按键圆圈标记
     try:
         if display_pressed in piano_keys:
-            key_index = note_to_index[display_pressed]
-            x = key_index * key_width
+            kidx = note_to_index[display_pressed]
+            x = kidx * key_width
             y = piano_y
-            marker_color = GREEN if display_result else RED
-            marker_radius = int(key_width / 4)
-            marker_center = (int(x + key_width / 2), int(y + key_height / 2))
-            pygame.draw.circle(screen, marker_color, marker_center, marker_radius, 4)
+            color = GREEN if display_result else RED
+            center = (int(x+key_width/2), int(y+key_width/2))
+            pygame.draw.circle(screen, color, center, int(key_width/4), 4)
     except Exception as e:
         print(f"绘制按键标记错误: {e}")
 
-    #段落结束弹窗
+    # 完成弹窗
     if finish_alert_active and finish_alert:
-        alert_x = (WIDTH - finish_alert.get_width()) // 2
-        alert_y = 100
-        screen.blit(finish_alert, (alert_x, alert_y))
-        
-        if finish_alert_cancelable and new_input_detected:
-            finish_alert_active = False
-            section_complete = False
+        ax = (WIDTH - finish_alert.get_width())//2
+        ay = 100
+        screen.blit(finish_alert, (ax, ay))
 
     pygame.display.flip()
     clock.tick(30)
 
 inport.close()
 pygame.quit()
+ser.close()

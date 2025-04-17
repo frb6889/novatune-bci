@@ -5,15 +5,13 @@ import sys
 import json
 from song_loader import load_song
 
-# 准备：获取midi ports名称
 print("Available MIDI input ports:")
 print(mido.get_input_names())
 
 print("Available MIDI output ports:")
 print(mido.get_output_names())
 
-# 
-midi_input_name = 'MPK mini 3' # 替换成实际设备名称
+midi_input_name = mido.get_input_names()[0]
 
 pygame.mixer.init()
 
@@ -24,7 +22,9 @@ NOTE_SOUNDS = {int(k): v for k, v in NOTE_SOUNDS.items()}
 with mido.open_input(midi_input_name) as inport:
     print("Listening for MIDI messages...")
     for msg in inport:
-        print(msg)  # 打印接收到的 MIDI 消息
+
+        print(msg)
+
         note = msg.note
         if msg.type == 'note_on' and note in NOTE_SOUNDS:
                 try:

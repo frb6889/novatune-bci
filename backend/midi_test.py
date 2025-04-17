@@ -172,6 +172,7 @@ RED        = (255,0,0)
 # 钢琴键索引
 piano_keys = sorted(NOTE_SOUNDS.keys())
 key_width  = WIDTH / 21
+key_height = y_offset
 piano_y    = y_offset
 
 # -------------------------
@@ -289,7 +290,7 @@ while running:
             x = kidx * key_width
             y = piano_y
             color = GREEN if display_result else RED
-            center = (int(x+key_width/2), int(y+key_width/2))
+            center = (int(x+key_width/2), int(y + key_height / 2))
             pygame.draw.circle(screen, color, center, int(key_width/4), 4)
     except Exception as e:
         print(f"绘制按键标记错误: {e}")

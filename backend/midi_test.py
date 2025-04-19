@@ -14,7 +14,7 @@ from song_loader import load_song
 
 # *** MIDI和钢琴相关初始化 ***
 pygame.mixer.init()
-ser = serial.Serial('/dev/cu.usbmodem144401', 9600, timeout=0.1)
+ser = serial.Serial('/dev/cu.usbmodem141401', 9600, timeout=0.1)
 
 
 MIDI_DEVICE_NAME = mido.get_input_names()[0]
@@ -64,7 +64,7 @@ def set_led(idx, brightness):
 
 def clear_leds():
     """全灭所有 LED"""
-    for i in range(21):
+    for i in range(60):
         set_led(i, 0)
 
 # 琴键对应的音频文件
@@ -150,7 +150,7 @@ display_result  = None
 
 # --- LED初始: 点亮第一颗expect灯
 clear_leds()
-set_led(note_to_index[expected_note], 255)
+set_led(note_to_index[expected_note]*2+14, 255)
 
 # --- LED: 计时控制
 timing_active = False
@@ -207,7 +207,7 @@ while running:
             timing_active   = False
             # 重点亮新段第一灯
             clear_leds()
-            set_led(note_to_index[expected_note], 255)
+            set_led(note_to_index[expected_note]*2+14, 255)
             finish_alert_active = False
             finish_alert_cancelable = False
 
@@ -239,7 +239,7 @@ while running:
             clear_leds()
             current_index = (current_index + 1) % len(song_notes)
             expected_note, expected_duration = song_notes[current_index]
-            set_led(note_to_index[expected_note], 255)
+            set_led(note_to_index[expected_note]*2+14, 255)
             timing_active    = False
             display_pressed  = None
             display_result   = None

@@ -24,7 +24,7 @@ class UIRenderer:
         self.finish_alert_start = 0
 
         try:
-            self.keyboard_img = pygame.image.load("pygame_img/keys.png").convert_alpha()
+            self.keyboard_img = pygame.image.load("assets/pygame_img/keys.png").convert_alpha()
             img_w, img_h = self.keyboard_img.get_size()
             scale = min(SCREEN_WIDTH/img_w, SCREEN_HEIGHT/img_h)
             self.keyboard_img = pygame.transform.scale(self.keyboard_img, (int(img_w*scale), int(img_h*scale)))
@@ -35,7 +35,7 @@ class UIRenderer:
             sys.exit()
 
         try:
-            self.finish_alert = pygame.image.load("pygame_img/finish_alert.png").convert_alpha()
+            self.finish_alert = pygame.image.load("assets/pygame_img/finish_alert.png").convert_alpha()
             fw, fh = self.finish_alert.get_size()
             self.finish_alert = pygame.transform.scale(self.finish_alert, (int(fw*0.4), int(fh*0.4)))
         except:
@@ -46,14 +46,14 @@ class UIRenderer:
         self.jianpu_images = []
         for i in range(song.num_sections):
             try:
-                img = pygame.image.load(f"pygame_img/section_{i+1}.png").convert_alpha()
+                img = pygame.image.load(f"assets/pygame_img/section_{i+1}.png").convert_alpha()
                 w,h = img.get_size()
                 self.section_images.append(pygame.transform.scale(img, (int(w*scale), int(h*scale))))
             except:
                 self.section_images.append(None)
 
             try:
-                img = pygame.image.load(f"pygame_img/jianpu/dongfanghong_{i+1}.png").convert_alpha()
+                img = pygame.image.load(f"assets/pygame_img/jianpu/dongfanghong_{i+1}.png").convert_alpha()
                 w,h = img.get_size()
                 self.jianpu_images.append(pygame.transform.scale(img, (int(w*scale), int(h*scale))))
             except:

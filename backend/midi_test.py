@@ -1,7 +1,9 @@
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__))) 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'modules')) 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')) 
 
 from config import *
 from MIDI_handler import MIDIHandler

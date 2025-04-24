@@ -1,4 +1,9 @@
 # song_manager.py
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__))) 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'modules')) 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')) 
 
 import json
 from songs import get_song

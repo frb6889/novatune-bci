@@ -1,13 +1,13 @@
 #midi_
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__))) 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'modules')) 
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(BASE_DIR)
 
 import mido
 import pygame
 import json
-from sound_player import SoundPlayer
+from modules.sound_player import SoundPlayer
 
 
 print("Available MIDI input ports:")
@@ -20,7 +20,7 @@ midi_input_name = mido.get_input_names()[0]
 
 pygame.mixer.init()
 
-with open("data/note_sounds.json", "r") as f:
+with open("../data/note_sounds.json", "r") as f:
     NOTE_SOUNDS = json.load(f)
 NOTE_SOUNDS = {int(k): v for k, v in NOTE_SOUNDS.items()}
 

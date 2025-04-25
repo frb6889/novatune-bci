@@ -32,7 +32,6 @@ serial_port = SERIAL_PORT
 led = LEDController(serial_port)
 MIDI_DEVICE_NAME = mido.get_input_names()[0]
 pygame.mixer.init()
-ser = serial.Serial(serial_port, 9600, timeout=0.1)
 
 song = SongManager(CURRENT_SONG, NOTE_TO_INDEX_FILE, NOTE_SOUNDS_FILE)
 ui = UIRenderer(song)
@@ -115,4 +114,4 @@ while running:
 
 midi.close()
 pygame.quit()
-ser.close()
+

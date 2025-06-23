@@ -20,3 +20,14 @@ class SoundPlayer:
                 ch.play(sound)
                 return
         print(f"No available channel for note {note} ㅠㅠ")
+    
+    def play_chord(self, notes):
+        available_channels = [ch for ch in self.channels if not ch.get_busy()]
+
+        if len(available_channels) < len(notes):
+            print(f"⚠️ Not enough channels: {len(available_channels)} available, need {len(notes)}")
+
+        for note, ch in zip(notes, available_channels):
+            sound = self.sounds.get(note)
+            if sound:
+                ch.play(sound)

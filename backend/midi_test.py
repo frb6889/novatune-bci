@@ -38,6 +38,7 @@ ui = UIRenderer(song)
 
 led.clear_all()
 led.set_led(song.note_to_index[song.expected_note]*2+14, 255)
+print(song.note_to_index[song.expected_note]*2+14)
 
 midi = MIDIHandler()
 
@@ -57,6 +58,7 @@ while running:
         elif evt.type == pygame.KEYDOWN:
             new_input = True
 
+    notes_this_frame = []
     for msg in midi.poll_all():
         new_input = True
         if msg.type == 'note_on' and msg.note in (36, 84):
@@ -72,23 +74,34 @@ while running:
 
         elif msg.type == 'note_on':
             note = msg.note
+            timestamp = time.time()
+
             if note in song.note_sounds:
-                try:
-                    sound_player.play(note)
-                    # -- NEO -- 发trigger
-                    # if note in TRIGGER_MAPPING:
-                    #     trig = TRIGGER_MAPPING[note]
-                    #     trigger.send_trigger(trig)
-                except:
-                    pass
+                notes_this_frame.append((note, timestamp))  # 收集
 
             ui.display_pressed = note
             if not timing_active and note == song.expected_note:
                 ui.display_result = True
                 timing_active = True
-                timer_start = time.time()
+                timer_start = timestamp
             else:
                 ui.display_result = False
+
+    # === 音符聚类播放 ===
+    notes_this_frame.sort(key=lambda x: x[1])
+    grouped = []
+    last_time = None
+
+    for note, ts in notes_this_frame:
+        if last_time is None or ts - last_time <= NOTE_THRESHOLD:
+            grouped.append((note, ts))
+        else:
+            sound_player.play_chord([n for n, _ in grouped])
+            grouped = [(note, ts)]
+        last_time = ts
+
+    if grouped:
+        sound_player.play_chord([n for n, _ in grouped])
 
     if timing_active and time.time() - timer_start >= song.expected_duration:
         led.clear_all()

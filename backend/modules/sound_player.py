@@ -1,33 +1,31 @@
-import pygame
+# sound_player.py (FluidSynth版)
+
+import fluidsynth
 import os
 
 class SoundPlayer:
-    def __init__(self, note_sounds, max_channels=16):
-        pygame.mixer.set_num_channels(max_channels)
+    def __init__(self, note_sounds=None, max_channels=16):
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        sf2_path = os.path.join(base_dir, 'assets', 'FluidR3_GM.sf2')
 
-        self.channels = [pygame.mixer.Channel(i) for i in range(max_channels)]
-        self.sounds = {
-            note: pygame.mixer.Sound(os.path.join(base_dir, path)) for note, path in note_sounds.items()
-        }
+        self.fs = fluidsynth.Synth()
+        self.fs.start(driver="coreaudio")
+
+        self.sfid = self.fs.sfload(sf2_path)
+        self.fs.program_select(0, self.sfid, 0, 0)
 
     def play(self, note):
-        sound = self.sounds.get(note)
-        if not sound:
-            return
-        for ch in self.channels:
-            if not ch.get_busy():
-                ch.play(sound)
-                return
-        print(f"No available channel for note {note} ㅠㅠ")
-    
+        self.fs.noteon(0, note, 127)
+
     def play_chord(self, notes):
-        available_channels = [ch for ch in self.channels if not ch.get_busy()]
+        for note in notes:
+            self.fs.noteon(0, note, 127)
 
-        if len(available_channels) < len(notes):
-            print(f"⚠️ Not enough channels: {len(available_channels)} available, need {len(notes)}")
+    def stop(self, note):
+        self.fs.noteoff(0, note)
 
-        for note, ch in zip(notes, available_channels):
-            sound = self.sounds.get(note)
-            if sound:
-                ch.play(sound)
+    def stop_all(self):
+        self.fs.system_reset()
+
+    def __del__(self):
+        self.fs.delete()

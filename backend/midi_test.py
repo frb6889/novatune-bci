@@ -12,6 +12,9 @@ from song_manager import SongManager
 from ui_renderer import UIRenderer
 from sound_player import SoundPlayer
 
+import os
+import csv
+from datetime import datetime
 import mido
 import pygame
 import time
@@ -50,6 +53,11 @@ timer_start = 0
 finish_alert_active = False
 finish_alert_cancelable = False
 
+
+# record记录
+note_start_times = {}
+records = []
+
 while running:
     new_input = False
     for evt in pygame.event.get():
@@ -60,7 +68,10 @@ while running:
 
     notes_this_frame = []
     for msg in midi.poll_all():
+
         new_input = True
+        current_time = time.time()
+
         if msg.type == 'note_on' and msg.note in (36, 84):
             if msg.note == 36:
                 song.prev_section()
@@ -72,12 +83,20 @@ while running:
             finish_alert_active = False
             finish_alert_cancelable = False
 
-        elif msg.type == 'note_on':
+        elif msg.type == 'note_on' and msg.velocity > 0:
             note = msg.note
+            velocity = msg.velocity
+            note_start_times[note] = current_time
             timestamp = time.time()
 
             if note in song.note_sounds:
                 notes_this_frame.append((note, timestamp))  # 收集
+                # # NEO:每次琴键输入时，发送对应的 trigger
+                # if note in TRIGGER_MAPPING:
+                #     trig = TRIGGER_MAPPING[note]
+                #     trigger.send_trigger(trig)
+
+        
 
             ui.display_pressed = note
             if not timing_active and note == song.expected_note:
@@ -86,6 +105,19 @@ while running:
                 timer_start = timestamp
             else:
                 ui.display_result = False
+
+        elif (msg.type == 'note_off') or (msg.type == 'note_on' and msg.velocity == 0):
+                note = msg.note
+                if note in note_start_times:
+                    start_time = note_start_times.pop(note)
+                    duration = current_time - start_time
+                    records.append({
+                        'note': note,
+                        'start_time': start_time,
+                        'end_time': current_time,
+                        'duration': duration,
+                        'velocity': msg.velocity
+                    })
 
     # === 音符聚类播放 ===
     notes_this_frame.sort(key=lambda x: x[1])
@@ -125,6 +157,24 @@ while running:
 
     pygame.time.Clock().tick(30)
 
+
+
+# 创建日志目录
+log_dir = "./log"
+os.makedirs(log_dir, exist_ok=True)
+
+# 使用当前时间作为文件名
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+log_filename = f"midi_key_log_{timestamp}.csv"
+output_file = os.path.join(log_dir, log_filename)
+
+# 写入CSV文件
+with open(output_file, 'w', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=['note', 'start_time', 'end_time', 'duration', 'velocity'])
+    writer.writeheader()
+    writer.writerows(records)
+
+print(f"✅ MIDI 键盘日志已保存至：{output_file}")
 midi.close()
 pygame.quit()
 

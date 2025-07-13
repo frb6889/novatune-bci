@@ -15,8 +15,17 @@ void setup() {
 
 void loop() {
   strip.clear();
-    for (int idx = 0; idx<=NUM_LEDS; idx++) {
+    for (int idx = 0; idx<=20; idx++) {
       strip.setPixelColor(idx, strip.Color(255, 255, 255));
+    }
+    for (int idx = 21; idx<=30; idx++) {
+      strip.setPixelColor(idx, strip.Color(255, 0, 0));
+    }
+    for (int idx = 31; idx<=40; idx++) {
+      strip.setPixelColor(idx, strip.Color(0, 255, 0));
+    }
+    for (int idx = 41; idx<=50; idx++) {
+      strip.setPixelColor(idx, strip.Color(0, 0, 255));
     }
     strip.show();
     

@@ -1,3 +1,9 @@
+# ---- mode切换 ----
+
+MODE = "mode2"
+
+# -----------------
+
 import os
 import sys
 import csv
@@ -20,8 +26,6 @@ from song_manager import SongManager
 from ui_renderer import UIRenderer
 from sound_player import SoundPlayer
 
-
-
 # -- NEO -- 获取trigger box
 # from device.trigger_box import TriggerNeuracle
 # trigger = TriggerNeuracle(port='COM6')
@@ -33,21 +37,25 @@ TRIGGER_MAPPING = {
     74: 0x10, 76: 0x11, 77: 0x12, 79: 0x13
 }
 
+pygame.mixer.init()
+
 serial_port = SERIAL_PORT
 led = LEDController(serial_port)
 MIDI_DEVICE_NAME = mido.get_input_names()[0]
-pygame.mixer.init()
-
-song = SongManager(CURRENT_SONG, NOTE_TO_INDEX_FILE, NOTE_SOUNDS_FILE)
+song = SongManager("doremifa", NOTE_TO_INDEX_FILE, NOTE_SOUNDS_FILE)
 ui = UIRenderer(song)
+midi = MIDIHandler()
+sound_player = SoundPlayer(song.note_sounds)
 
 led.clear_all()
-led.set_led(song.note_to_index[song.expected_note]*2+14, 255)
+
+# 2. led亮+播放声音 1秒
+led.set_led(song.note_to_index[song.expected_note]*2+14, -1)
+if(MODE == "mode1"):
+    sound_player.play(song.expected_note)
+
 print(song.note_to_index[song.expected_note]*2+14)
 
-midi = MIDIHandler()
-
-sound_player = SoundPlayer(song.note_sounds)
 
 running = True
 timing_active = False
@@ -81,7 +89,13 @@ while running:
                 song.next_section()
             song.reset()
             led.clear_all()
-            led.set_led(song.note_to_index[song.expected_note]*2+14, 255)
+
+            
+            # 2. led亮+播放声音 1秒
+            led.set_led(song.note_to_index[song.expected_note]*2+14, -1)
+            if(MODE == "mode1"):
+                sound_player.play(song.expected_note)
+
             finish_alert_active = False
             finish_alert_cancelable = False
 
@@ -122,6 +136,7 @@ while running:
                     })
 
     # === 音符聚类播放 ===
+    
     notes_this_frame.sort(key=lambda x: x[1])
     grouped = []
     last_time = None
@@ -135,12 +150,18 @@ while running:
         last_time = ts
 
     if grouped:
-        sound_player.play_chord([n for n, _ in grouped])
-
+        sound_player.play_chord([n for n, _ in grouped]) 
+        
     if timing_active and time.time() - timer_start >= song.expected_duration:
         led.clear_all()
         song.advance_note()
-        led.set_led(song.note_to_index[song.expected_note]*2+14, 255)
+
+        # 2. led亮+播放声音 15秒
+        time.sleep(1)
+        led.set_led(song.note_to_index[song.expected_note]*2+14, -1)
+        if(MODE == "mode1"):
+            sound_player.play(song.expected_note)
+
         timing_active = False
         ui.display_pressed = None
         ui.display_result = None

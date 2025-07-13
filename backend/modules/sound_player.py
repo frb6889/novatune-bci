@@ -2,6 +2,7 @@
 
 import fluidsynth
 import os
+import time
 
 class SoundPlayer:
     def __init__(self, note_sounds=None, max_channels=16):

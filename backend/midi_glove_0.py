@@ -1,6 +1,7 @@
+# 版本0:忽略键盘输入，到时间直接切换
 # ---- mode切换 ----
 
-MODE = "mode2"
+MODE = "mode1"
 
 # -----------------
 
@@ -22,6 +23,7 @@ from datetime import datetime
 from config import *
 from MIDI_handler import MIDIHandler
 from LED_controller import LEDController
+from servo_controller import ServoController
 from song_manager import SongManager
 from ui_renderer import UIRenderer
 from sound_player import SoundPlayer
@@ -39,8 +41,12 @@ TRIGGER_MAPPING = {
 
 pygame.mixer.init()
 
-serial_port = SERIAL_PORT
-led = LEDController(serial_port)
+led_port = LED_PORT
+servo_port = SERVO_PORT
+
+led = LEDController(led_port)
+servo = ServoController(servo_port)
+
 MIDI_DEVICE_NAME = mido.get_input_names()[0]
 song = SongManager("doremifa", NOTE_TO_INDEX_FILE, NOTE_SOUNDS_FILE)
 ui = UIRenderer(song)
@@ -50,9 +56,19 @@ sound_player = SoundPlayer(song.note_sounds)
 led.clear_all()
 
 # 2. led亮+播放声音 1秒
+#开始trigger
+#trigger.send_trigger(0x00)
+time.sleep(3)
 led.set_led(song.note_to_index[song.expected_note]*2+14, -1)
 if(MODE == "mode1"):
     sound_player.play(song.expected_note)
+
+time.sleep(3)
+servo.set_servo(song.expected_note)
+
+# 等待时间参数
+wait_time = time.time()
+
 
 print(song.note_to_index[song.expected_note]*2+14)
 
@@ -92,9 +108,18 @@ while running:
 
             
             # 2. led亮+播放声音 1秒
+            # trigger.send_trigger(0x00)
+
+            time.sleep(3)
             led.set_led(song.note_to_index[song.expected_note]*2+14, -1)
             if(MODE == "mode1"):
                 sound_player.play(song.expected_note)
+
+            time.sleep(3)
+            servo.set_servo(song.expected_note)
+
+            # 等待时间参数
+            wait_time = time.time()
 
             finish_alert_active = False
             finish_alert_cancelable = False
@@ -106,7 +131,8 @@ while running:
             timestamp = time.time()
 
             if note in song.note_sounds:
-                notes_this_frame.append((note, timestamp))  # 收集
+                if(MODE!="mode1"):
+                    sound_player.play(note)
                 # # NEO:每次琴键输入时，发送对应的 trigger
                 # if note in TRIGGER_MAPPING:
                 #     trig = TRIGGER_MAPPING[note]
@@ -135,32 +161,20 @@ while running:
                         'velocity': msg.velocity
                     })
 
-    # === 音符聚类播放 ===
     
-    notes_this_frame.sort(key=lambda x: x[1])
-    grouped = []
-    last_time = None
-
-    for note, ts in notes_this_frame:
-        if last_time is None or ts - last_time <= NOTE_THRESHOLD:
-            grouped.append((note, ts))
-        else:
-            sound_player.play_chord([n for n, _ in grouped])
-            grouped = [(note, ts)]
-        last_time = ts
-
-    if grouped:
-        sound_player.play_chord([n for n, _ in grouped]) 
-        
-    if timing_active and time.time() - timer_start >= song.expected_duration:
+    if time.time()-wait_time >= 2.0:
         led.clear_all()
         song.advance_note()
-
         # 2. led亮+播放声音 15秒
-        time.sleep(1)
+        
+        #trigger.send_trigger(0x00)
+        time.sleep(3)
         led.set_led(song.note_to_index[song.expected_note]*2+14, -1)
         if(MODE == "mode1"):
             sound_player.play(song.expected_note)
+
+        time.sleep(3)
+        servo.set_servo(song.expected_note)
 
         timing_active = False
         ui.display_pressed = None

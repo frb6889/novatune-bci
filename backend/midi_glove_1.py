@@ -1,3 +1,10 @@
+# 版本1:只键盘输入时才切换音符
+# ---- mode切换 ----
+
+MODE = "mode1"
+
+# -----------------
+
 import os
 import sys
 import csv
@@ -16,11 +23,10 @@ from datetime import datetime
 from config import *
 from MIDI_handler import MIDIHandler
 from LED_controller import LEDController
+from servo_controller import ServoController
 from song_manager import SongManager
 from ui_renderer import UIRenderer
 from sound_player import SoundPlayer
-
-
 
 # -- NEO -- 获取trigger box
 # from device.trigger_box import TriggerNeuracle
@@ -33,21 +39,56 @@ TRIGGER_MAPPING = {
     74: 0x10, 76: 0x11, 77: 0x12, 79: 0x13
 }
 
-serial_port = LED_PORT
-led = LEDController(serial_port)
-MIDI_DEVICE_NAME = mido.get_input_names()[0]
 pygame.mixer.init()
 
-song = SongManager(CURRENT_SONG, NOTE_TO_INDEX_FILE, NOTE_SOUNDS_FILE)
+led_port = LED_PORT
+servo_port = SERVO_PORT
+
+led = LEDController(led_port)
+servo = ServoController(servo_port)
+
+MIDI_DEVICE_NAME = mido.get_input_names()[0]
+song = SongManager("doremifa", NOTE_TO_INDEX_FILE, NOTE_SOUNDS_FILE)
 ui = UIRenderer(song)
+midi = MIDIHandler()
+sound_player = SoundPlayer(song.note_sounds)
+
+state = "playing_note"
+state_start_time = time.time()
+note_display_start_time = time.time()
+
+
 
 led.clear_all()
-led.set_led(song.note_to_index[song.expected_note]*2+14, 255)
+
+current_time = time.time()
+
+if state == "playing_note":
+    led.set_led(song.note_to_index[song.expected_note]*2+14, -1)
+    if(MODE == "mode1"):
+        sound_player.play(song.expected_note)
+    state = "waiting_servo"
+    state_start_time = current_time
+
+#状态2 控制舵机
+elif state == "waiting_servo" and current_time - state_start_time >= 3.0:
+    led.clear_all()
+    servo.set_servo(song.expected_note)
+    note_display_start_time = current_time
+    state = "waiting_input"
+
+    #状态3 等待键盘输入
+elif state == "waiting_input":
+    led.clear_all()
+    if timing_active and current_time - timer_start >= song.expected_duration:
+        state = "playing_note"
+    elif not timing_active and current_time - note_display_start_time >= 3.0:
+        state = "playing_note"
+
+
+
+
 print(song.note_to_index[song.expected_note]*2+14)
-
-midi = MIDIHandler()
-
-sound_player = SoundPlayer(song.note_sounds)
 
 running = True
 timing_active = False
@@ -55,8 +96,6 @@ timer_start = 0
 finish_alert_active = False
 finish_alert_cancelable = False
 
-
-# record记录
 note_start_times = {}
 records = []
 
@@ -68,9 +107,7 @@ while running:
         elif evt.type == pygame.KEYDOWN:
             new_input = True
 
-    notes_this_frame = []
     for msg in midi.poll_all():
-
         new_input = True
         current_time = time.time()
 
@@ -80,10 +117,8 @@ while running:
             else:
                 song.next_section()
             song.reset()
-            led.clear_all()
-            led.set_led(song.note_to_index[song.expected_note]*2+14, 255)
-            finish_alert_active = False
-            finish_alert_cancelable = False
+            state = "playing_note"
+            continue
 
         elif msg.type == 'note_on' and msg.velocity > 0:
             note = msg.note
@@ -92,13 +127,9 @@ while running:
             timestamp = time.time()
 
             if note in song.note_sounds:
-                notes_this_frame.append((note, timestamp))  # 收集
-                # # NEO:每次琴键输入时，发送对应的 trigger
+                sound_player.play(note)
                 # if note in TRIGGER_MAPPING:
-                #     trig = TRIGGER_MAPPING[note]
-                #     trigger.send_trigger(trig)
-
-        
+                #     trigger.send_trigger(TRIGGER_MAPPING[note])
 
             ui.display_pressed = note
             if not timing_active and note == song.expected_note:
@@ -108,46 +139,55 @@ while running:
             else:
                 ui.display_result = False
 
-        elif (msg.type == 'note_off') or (msg.type == 'note_on' and msg.velocity == 0):
-                note = msg.note
-                if note in note_start_times:
-                    start_time = note_start_times.pop(note)
-                    duration = current_time - start_time
-                    records.append({
-                        'note': note,
-                        'start_time': start_time,
-                        'end_time': current_time,
-                        'duration': duration,
-                        'velocity': msg.velocity
-                    })
+        elif msg.type in ('note_off', 'note_on') and msg.velocity == 0:
+            note = msg.note
+            if note in note_start_times:
+                start_time = note_start_times.pop(note)
+                duration = current_time - start_time
+                records.append({
+                    'note': note,
+                    'start_time': start_time,
+                    'end_time': current_time,
+                    'duration': duration,
+                    'velocity': msg.velocity
+                })
 
-    # === 音符聚类播放 ===
-    notes_this_frame.sort(key=lambda x: x[1])
-    grouped = []
-    last_time = None
+    # ----------- 状态切换控制（非阻塞） -------------
+    current_time = time.time()
 
-    for note, ts in notes_this_frame:
-        if last_time is None or ts - last_time <= NOTE_THRESHOLD:
-            grouped.append((note, ts))
-        else:
-            sound_player.play_chord([n for n, _ in grouped])
-            grouped = [(note, ts)]
-        last_time = ts
-
-    if grouped:
-        sound_player.play_chord([n for n, _ in grouped])
-
-    if timing_active and time.time() - timer_start >= song.expected_duration+2.0:
+    # 状态1 等待键盘输入
+    if state == "playing_note" and current_time - state_start_time >= 3.0:
         led.clear_all()
         song.advance_note()
-        led.set_led(song.note_to_index[song.expected_note]*2+14, 255)
-        timing_active = False
+        led.set_led(song.note_to_index[song.expected_note]*2+14, -1)
+        if MODE == "mode1":
+            sound_player.play(song.expected_note)
+        state = "waiting_servo"
+        state_start_time = current_time
+
         ui.display_pressed = None
         ui.display_result = None
+        timing_active = False
+
         if song.current_index == 0:
             finish_alert_active = True
             ui.finish_alert_start = pygame.time.get_ticks()
             finish_alert_cancelable = False
+
+    #状态2 控制舵机
+    elif state == "waiting_servo" and current_time - state_start_time >= 5.0:
+        led.clear_all()
+        servo.set_servo(song.expected_note)
+        note_display_start_time = current_time
+        state = "waiting_input"
+
+    #状态3 等待键盘输入
+    elif state == "waiting_input" and current_time - state_start_time >= 3.0:
+        led.clear_all()
+        if timing_active and current_time - timer_start >= song.expected_duration + 4.0:
+            state = "playing_note"
+        elif not timing_active and current_time - note_display_start_time >= 5.0:
+            state = "playing_note"
 
     if finish_alert_active:
         if pygame.time.get_ticks() - ui.finish_alert_start >= 500:
@@ -156,9 +196,7 @@ while running:
             finish_alert_active = False
 
     ui.render(finish_alert_active)
-
     pygame.time.Clock().tick(30)
-
 
 # 记得不要用键盘interrupt，而是关闭窗口！！！
 # 创建日志目录
@@ -179,4 +217,3 @@ with open(output_file, 'w', newline='') as f:
 print(f"✅ MIDI 键盘日志已保存至：{output_file}")
 midi.close()
 pygame.quit()
-

@@ -33,10 +33,13 @@ from sound_player import SoundPlayer
 # trigger = TriggerNeuracle(port='COM6')
 
 TRIGGER_MAPPING = {
-    48: 0x01, 50: 0x02, 52: 0x03, 53: 0x04, 55: 0x05,
-    57: 0x06, 59: 0x07, 60: 0x08, 62: 0x09, 64: 0x0A,
-    65: 0x0B, 67: 0x0C, 69: 0x0D, 71: 0x0E, 72: 0x0F,
-    74: 0x10, 76: 0x11, 77: 0x12, 79: 0x13
+    60: 0x01, 62:0x02, 64:0x03,65:0x04
+
+    
+}
+
+LED_MAPPING = {
+    60: 0x05, 62:0x06, 64:0x07,65:0x08
 }
 
 pygame.mixer.init()
@@ -160,6 +163,8 @@ while running:
         led.clear_all()
         song.advance_note()
         led.set_led(song.note_to_index[song.expected_note]*2+14, -1)
+        
+        # trigger.send_trigger(LED_MAPPING[note])
         if MODE == "mode1":
             sound_player.play(song.expected_note)
         state = "waiting_servo"
@@ -180,6 +185,7 @@ while running:
         servo.set_servo(song.expected_note)
         note_display_start_time = current_time
         state = "waiting_input"
+
 
     #状态3 等待键盘输入
     elif state == "waiting_input" and current_time - state_start_time >= 3.0:

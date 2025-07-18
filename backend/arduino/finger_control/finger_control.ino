@@ -6,14 +6,14 @@ const int initial_pos1 = 0, initial_pos2 = 0, initial_pos3 = 0, initial_pos4 = 0
 
 void sweepServo(Servo &servo, int initial_pos) {
   // 从当前 0 转到 180
-  for (int pos = initial_pos; pos <= initial_pos+120; pos += 1) {
+  for (int pos = initial_pos; pos <= initial_pos+150; pos += 1) {
     servo.write(pos);
     delay(10);
   }
   delay(50); // 稍作等待
 
   // 从 180 回到 0
-  for (int pos = initial_pos+120; pos >= initial_pos; pos -= 1) {
+  for (int pos = initial_pos+150; pos >= initial_pos; pos -= 1) {
     servo.write(pos);
     delay(10);
   }

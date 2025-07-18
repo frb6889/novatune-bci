@@ -18,7 +18,7 @@ class SongManager:
         self.current_index = 0
 
         # 是否打乱顺序，仅对 doremifa 启用
-        self.shuffle_enabled = (song_name == "doremifa")
+        self.shuffle_enabled = (song_name == "remifaso" or song_name =="doremifa")
 
         # 创建副本用于打乱播放（不影响原始曲目）
         self.song_sections = [section[:] for section in self.original_sections]
@@ -59,7 +59,6 @@ class SongManager:
         self.current_index = (self.current_index + 1) % len(sec)
 
     def reset(self):
-        """重置回当前段落的第一个音符，并重新打乱（仅 doremifa）"""
         self.current_index = 0
         if self.shuffle_enabled:
             self.song_sections[self.current_section] = self.original_sections[self.current_section][:]

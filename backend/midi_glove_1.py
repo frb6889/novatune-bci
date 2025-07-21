@@ -3,6 +3,7 @@
 MODE = "mode1" # mode1 为播放指示声音，mode2 为不播放指示声音
 
 # -----------------
+# python midi_glove_1.py
 
 import os
 import sys
@@ -26,7 +27,7 @@ from LED_controller import LEDController
 from servo_controller import ServoController
 from song_manager import SongManager
 from ui_renderer import UIRenderer
-from sound_player import SoundPlayer
+from sound_player_old import SoundPlayer
 
 # -- NEO -- 获取trigger box
 # from device.trigger_box import TriggerNeuracle
@@ -87,6 +88,7 @@ finish_alert_cancelable = False
 note_start_times = {}
 records = []
 
+section_end = 1
 old_r = 100
 old_g = 255
 old_b = 0
@@ -154,13 +156,14 @@ while running:
     if state == "playing_note" and current_time - state_start_time >= 3.0:
         # led.clear_all()
         song.advance_note()
+        section_end+=1
+        # trigger.send_trigger(LED_MAPPING[note])
         led.set_led(song.note_to_index[song.expected_note]*2+14, -1,0,0,0,100,255,0)
         # TODO：解决一旦加上这行 后面的绿色渐变就会被阻塞闪动的问题
         """ old_r = 100
         old_g = 255
         old_b = 0 """
         
-        # trigger.send_trigger(LED_MAPPING[note])
         if MODE == "mode1":
             sound_player.play(song.expected_note)
         state = "waiting_servo"
@@ -197,6 +200,7 @@ while running:
         
         # 舵机
         if current_time - state_start_time >= 3.0:
+            #trigger.send_trigger(TRIGGER_MAPPING[song.expected_note])
             led.set_led(song.note_to_index[song.expected_note]*2 + 14,1,100, 255, 0, 0,255,0)
             # led.clear_all()
             servo.set_servo(song.expected_note)
@@ -207,6 +211,9 @@ while running:
     #状态3 等待键盘输入
     elif state == "waiting_input" and current_time - state_start_time >= 3.0:
         led.clear_all()
+        if(section_end%==0):
+            song.reset()
+        
         if timing_active and current_time - timer_start >= song.expected_duration + 4.0:
             state = "playing_note"
         elif not timing_active and current_time - note_display_start_time >= 5.0:

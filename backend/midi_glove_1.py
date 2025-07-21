@@ -211,7 +211,7 @@ while running:
     #状态3 等待键盘输入
     elif state == "waiting_input" and current_time - state_start_time >= 3.0:
         led.clear_all()
-        if(section_end%==0):
+        if(section_end%4==0):
             song.reset()
         
         if timing_active and current_time - timer_start >= song.expected_duration + 4.0:

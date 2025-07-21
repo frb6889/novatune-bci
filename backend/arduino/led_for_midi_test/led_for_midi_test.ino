@@ -43,7 +43,7 @@ void loop() {
         }
       }else if(is_gradiant == 1){
         int steps = 50;
-        int delayTime = 3000 / steps;
+        int delayTime = 1000 / steps;
 
         for (int i = 0; i <= steps; i++) {
           int level_r = map(i, 0, steps, old_r, new_r);

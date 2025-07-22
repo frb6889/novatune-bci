@@ -30,14 +30,14 @@ from ui_renderer import UIRenderer
 from sound_player_old import SoundPlayer
 
 # -- NEO -- 获取trigger box
-# from device.trigger_box import TriggerNeuracle
-# trigger = TriggerNeuracle(port='COM6')
+from device.trigger_box import TriggerNeuracle
+trigger = TriggerNeuracle(port='COM5')
 
 TRIGGER_MAPPING = {
-    60: 0x01, 62:0x02, 64:0x03,65:0x04
+    62: 0x01, 64:0x02, 65:0x03,67:0x04
 }
 LED_MAPPING = {
-    60: 0x05, 62:0x06, 64:0x07,65:0x08
+    62: 0x05, 64:0x06, 65:0x07,67:0x08
 }
 
 pygame.mixer.init()
@@ -157,7 +157,7 @@ while running:
         # led.clear_all()
         song.advance_note()
         section_end+=1
-        # trigger.send_trigger(LED_MAPPING[note])
+        trigger.send_trigger(LED_MAPPING[song.expected_note])
         led.set_led(song.note_to_index[song.expected_note]*2+14, -1,0,0,0,100,255,0)
         # TODO：解决一旦加上这行 后面的绿色渐变就会被阻塞闪动的问题
         """ old_r = 100
@@ -200,7 +200,7 @@ while running:
         
         # 舵机
         if current_time - state_start_time >= 3.0:
-            #trigger.send_trigger(TRIGGER_MAPPING[song.expected_note])
+            trigger.send_trigger(TRIGGER_MAPPING[song.expected_note])
             led.set_led(song.note_to_index[song.expected_note]*2 + 14,1,100, 255, 0, 0,255,0)
             # led.clear_all()
             servo.set_servo(song.expected_note)

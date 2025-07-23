@@ -4,7 +4,7 @@ Servo myServo1, myServo2, myServo3, myServo4;
 
 int initial_pos1 = 40, initial_pos2 = 45, initial_pos3 = 70, initial_pos4 = 10;
 
-int mode = 3;  // 默认是接收 Serial 的模式
+int mode = 4;  // 默认是接收 Serial 的模式
 
 void sweepServo(Servo &servo, int initial_pos) {
   for (int pos = initial_pos; pos <= initial_pos + 145; pos += 1) {

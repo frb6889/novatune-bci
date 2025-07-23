@@ -58,6 +58,12 @@ class SongManager:
         sec = self.song_sections[self.current_section]
         self.current_index = (self.current_index + 1) % len(sec)
 
+    def section_shuffle(self):
+        if self.shuffle_enabled:
+            self.current_index = 0
+            self.song_sections[self.current_section] = self.original_sections[self.current_section][:]
+            random.shuffle(self.song_sections[self.current_section])
+
     def reset(self):
         self.current_index = 0
         if self.shuffle_enabled:

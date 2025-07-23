@@ -4,8 +4,8 @@ NOTE_SOUNDS_FILE  = "data/note_sounds.json"
 # parameters
 CURRENT_SONG      = "dongfanghong"
 
-LED_PORT       = 'COM3'
-SERVO_PORT       = 'COM4'
+LED_PORT       = '/dev/cu.usbmodem1201'
+SERVO_PORT       = '/dev/cu.usbmodem1101'
 
 SCREEN_WIDTH      = 1300
 SCREEN_HEIGHT     = 800

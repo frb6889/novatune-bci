@@ -1,6 +1,8 @@
-# ---- mode切换 ---- 
+# ---- 重要！！预设置 ---- 
 
-MODE = "mode1" # mode1 为播放指示声音，mode2 为不播放指示声音
+play_indicate_note = True # True 为播放指示声音，False 为不播放指示声音
+has_servo = False # 是否连接 Servo 进行测试
+has_trigger_box = False # 是否连接trigger box进行测试
 
 # -----------------
 # python midi_glove_1.py
@@ -27,11 +29,12 @@ from LED_controller import LEDController
 from servo_controller import ServoController
 from song_manager import SongManager
 from ui_renderer import UIRenderer
-from sound_player_old import SoundPlayer
+from sound_player import SoundPlayer
 
 # -- NEO -- 获取trigger box
-from device.trigger_box import TriggerNeuracle
-trigger = TriggerNeuracle(port='COM5')
+if has_trigger_box:
+    from device.trigger_box import TriggerNeuracle
+    trigger = TriggerNeuracle(port='COM5')
 
 TRIGGER_MAPPING = {
     62: 0x01, 64:0x02, 65:0x03,67:0x04
@@ -48,15 +51,15 @@ servo_port = SERVO_PORT
 led = LEDController(led_port)
 LED_RANDOM_TIME = 0.5
 
-
-
-servo = ServoController(servo_port)
+if has_servo:
+    servo = ServoController(servo_port)
 
 MIDI_DEVICE_NAME = mido.get_input_names()[0]
 song = SongManager("remifaso", NOTE_TO_INDEX_FILE, NOTE_SOUNDS_FILE)
+sound_player = SoundPlayer(song.note_sounds)
+
 ui = UIRenderer(song)
 midi = MIDIHandler()
-sound_player = SoundPlayer(song.note_sounds)
 
 state = "playing_note"
 state_start_time = time.time()
@@ -67,18 +70,6 @@ current_time = time.time()
 
 last_green_update = 0.0
 
-# ----------- 第一个键 -------------
-#状态1 灯和琴键声指示
-if state == "playing_note":
-    led.set_led(song.note_to_index[song.expected_note]*2+14, -1,0,0,0,100,255,0)
-    if(MODE == "mode1"):
-        sound_player.play(song.expected_note)
-    state = "waiting_servo"
-    state_start_time = current_time
-
-
-
-
 running = True
 timing_active = False
 timer_start = 0
@@ -86,13 +77,8 @@ finish_alert_active = False
 finish_alert_cancelable = False
 
 note_start_times = {}
+
 records = []
-
-section_end = 1
-old_r = 100
-old_g = 255
-old_b = 0
-
 
 # ----------- 运行主进程 -------------
 while running:
@@ -150,21 +136,16 @@ while running:
 
     # ----------- 状态切换控制（非阻塞） -------------
     current_time = time.time()
-   
 
     #状态1 灯和琴键声指示
     if state == "playing_note" and current_time - state_start_time >= 3.0:
-        # led.clear_all()
-        song.advance_note()
-        section_end+=1
-        trigger.send_trigger(LED_MAPPING[song.expected_note])
-        led.set_led(song.note_to_index[song.expected_note]*2+14, -1,0,0,0,100,255,0)
-        # TODO：解决一旦加上这行 后面的绿色渐变就会被阻塞闪动的问题
-        """ old_r = 100
-        old_g = 255
-        old_b = 0 """
+
+        # 发送开始变黄的trigger
+        if has_trigger_box:
+            trigger.send_trigger(LED_MAPPING[note])
+        led.to_yellow(song.note_to_index[song.expected_note]*2+14)
         
-        if MODE == "mode1":
+        if play_indicate_note:
             sound_player.play(song.expected_note)
         state = "waiting_servo"
         state_start_time = current_time
@@ -172,38 +153,25 @@ while running:
         ui.display_pressed = None
         ui.display_result = None
         timing_active = False
+
         if song.current_index == 0:
             finish_alert_active = True
             ui.finish_alert_start = pygame.time.get_ticks()
             finish_alert_cancelable = False
 
     #状态2 控制舵机
-    """ elif state == "waiting_servo" and current_time - state_start_time >= 5.0:
-        led.clear_all()
-        servo.set_servo(song.expected_note)
-        note_display_start_time = current_time
-        state = "waiting_input"
-        if current_time - last_green_update >= 0.1:
-            brightness = random.randint(100, 255)
-            led.set_led(song.note_to_index[song.expected_note]*2+14, 0, brightness, 0)
-            last_green_update = current_time """
-
-
     if state == "waiting_servo":
-        """ if current_time - last_green_update >= LED_RANDOM_TIME:
-            brightness_g = random.randint(100, 255)
-            led.set_led(song.note_to_index[song.expected_note]*2 + 14,1,old_r, old_g, old_b, 0,brightness_g,0)
-            old_r = 0
-            old_g = brightness_g
-            old_b = 0
-            last_green_update = current_time """
         
         # 舵机
         if current_time - state_start_time >= 3.0:
-            trigger.send_trigger(TRIGGER_MAPPING[song.expected_note])
-            led.set_led(song.note_to_index[song.expected_note]*2 + 14,1,100, 255, 0, 0,255,0)
-            # led.clear_all()
-            servo.set_servo(song.expected_note)
+
+            # 发送开始变绿的trigger
+            if has_trigger_box:
+                trigger.send_trigger(TRIGGER_MAPPING[song.expected_note])
+            led.to_green(song.note_to_index[song.expected_note]*2 + 14)
+            if has_servo:
+                servo.set_servo(song.expected_note)
+
             note_display_start_time = current_time
             state = "waiting_input"
             last_green_update = 0
@@ -211,13 +179,20 @@ while running:
     #状态3 等待键盘输入
     elif state == "waiting_input" and current_time - state_start_time >= 3.0:
         led.clear_all()
-        if(section_end%4==0):
-            song.reset()
-        
         if timing_active and current_time - timer_start >= song.expected_duration + 4.0:
             state = "playing_note"
-        elif not timing_active and current_time - note_display_start_time >= 5.0:
+        elif not timing_active and current_time - note_display_start_time >= 3.0: # 不接受键盘输入
             state = "playing_note"
+            print(song.current_index," ",
+            song.expected_note," ",
+            len(song.song_sections[song.current_section]))
+
+            song.advance_note()
+            # 打乱顺序
+            if song.current_index == 0:
+                song.section_shuffle()
+                print("----------")
+
 
     if finish_alert_active:
         if pygame.time.get_ticks() - ui.finish_alert_start >= 500:

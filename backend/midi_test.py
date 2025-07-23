@@ -42,7 +42,7 @@ song = SongManager(CURRENT_SONG, NOTE_TO_INDEX_FILE, NOTE_SOUNDS_FILE)
 ui = UIRenderer(song)
 
 led.clear_all()
-led.set_led(song.note_to_index[song.expected_note]*2+14, 255)
+led.set_led(song.note_to_index[song.expected_note]*2+14, 1,255,255,255,255,255,255)
 print(song.note_to_index[song.expected_note]*2+14)
 
 midi = MIDIHandler()
@@ -81,7 +81,7 @@ while running:
                 song.next_section()
             song.reset()
             led.clear_all()
-            led.set_led(song.note_to_index[song.expected_note]*2+14, 255)
+            led.set_led(song.note_to_index[song.expected_note]*2+14, 1,255,255,255,255,255,255)
             finish_alert_active = False
             finish_alert_cancelable = False
 
@@ -140,7 +140,7 @@ while running:
     if timing_active and time.time() - timer_start >= song.expected_duration+2.0:
         led.clear_all()
         song.advance_note()
-        led.set_led(song.note_to_index[song.expected_note]*2+14, 255)
+        led.set_led(song.note_to_index[song.expected_note]*2+14, 1,255,255,255,255,255,255)
         timing_active = False
         ui.display_pressed = None
         ui.display_result = None

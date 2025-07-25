@@ -1,7 +1,7 @@
 # ---- 重要！！预设置 ---- 
 
 play_indicate_note = True # True 为播放指示声音，False 为不播放指示声音
-has_servo = False # 是否连接 Servo 进行测试
+has_servo = True # 是否连接 Servo 进行测试
 has_trigger_box = False # 是否连接trigger box进行测试
 
 # -----------------
@@ -147,6 +147,13 @@ while running:
         
         if play_indicate_note:
             sound_player.play(song.expected_note)
+        print(song.current_index," ",
+            song.expected_note," ",
+            "servo num=",TRIGGER_MAPPING[song.expected_note]," ",
+            "keyboard num=",TRIGGER_MAPPING[song.expected_note]+1," ",
+            "section length=",len(song.song_sections[song.current_section])
+            )
+        
         state = "waiting_servo"
         state_start_time = current_time
 
@@ -170,6 +177,7 @@ while running:
                 trigger.send_trigger(TRIGGER_MAPPING[song.expected_note])
             led.to_green(song.note_to_index[song.expected_note]*2 + 14)
             if has_servo:
+                # print(f"has servo, now set expected note:{song.expected_note}")
                 servo.set_servo(song.expected_note)
 
             note_display_start_time = current_time
@@ -183,10 +191,14 @@ while running:
             state = "playing_note"
         elif not timing_active and current_time - note_display_start_time >= 3.0: # 不接受键盘输入
             state = "playing_note"
-            print(song.current_index," ",
+            """ print(song.current_index," ",
             song.expected_note," ",
-            len(song.song_sections[song.current_section]))
-
+            "servo num=",TRIGGER_MAPPING[song.expected_note]," ",
+            "keyboard num=",TRIGGER_MAPPING[song.expected_note]+1," ",
+            "section length=",len(song.song_sections[song.current_section])
+            ,"----end----") """
+            servo.set_servo(5)
+            print("-")
             song.advance_note()
             # 打乱顺序
             if song.current_index == 0:

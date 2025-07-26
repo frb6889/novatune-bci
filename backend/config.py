@@ -6,6 +6,7 @@ CURRENT_SONG       = "remifaso"
 
 LED_PORT           = '/dev/cu.usbmodem1101'
 SERVO_PORT         = '/dev/cu.usbmodem1201'
+TRIGGER_PORT       = 'COM5'
 
 SCREEN_WIDTH       = 1300
 SCREEN_HEIGHT      = 800

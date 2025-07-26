@@ -1,4 +1,4 @@
-# python midi_glove.py
+# python main.py
 import os
 import sys
 import csv
@@ -38,6 +38,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-

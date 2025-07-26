@@ -16,7 +16,7 @@ class TrainingEnv:
     def __init__(self, training_config):
         self.led = LEDController(LED_PORT)
         self.servo = ServoController(SERVO_PORT) if training_config.has_servo else None
-        self.trigger = TriggerNeuracle(port='COM5') if training_config.has_trigger_box else None
+        self.trigger = TriggerNeuracle(port = TRIGGER_PORT) if training_config.has_trigger_box else None
         self.song = SongManager(CURRENT_SONG, NOTE_TO_INDEX_FILE, NOTE_SOUNDS_FILE)
         self.sound_player = SoundPlayer(self.song.note_sounds)
         self.ui = UIRenderer(self.song)

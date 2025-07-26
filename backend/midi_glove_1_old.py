@@ -1,7 +1,7 @@
 # ---- 重要！！预设置 ---- 
 
 play_indicate_note = True # True 为播放指示声音，False 为不播放指示声音
-has_servo = True # 是否连接 Servo 进行测试
+has_servo = False # 是否连接 Servo 进行测试
 has_trigger_box = False # 是否连接trigger box进行测试
 
 # -----------------
@@ -142,7 +142,7 @@ while running:
 
         # 发送开始变黄的trigger
         if has_trigger_box:
-            trigger.send_trigger(LED_MAPPING[note])
+            trigger.send_trigger(LED_MAPPING[song.expected_note])
         led.to_yellow(song.note_to_index[song.expected_note]*2+14)
         
         if play_indicate_note:
@@ -235,4 +235,3 @@ with open(output_file, 'w', newline='') as f:
 
 print(f"✅ MIDI 键盘日志已保存至：{output_file}")
 midi.close()
-pygame.quit()

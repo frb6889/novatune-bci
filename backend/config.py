@@ -4,7 +4,7 @@ NOTE_SOUNDS_FILE   = "data/note_sounds.json"
 # parameters
 CURRENT_SONG       = "remifaso"
 
-LED_PORT           = '/dev/cu.usbmodem1101'
+LED_PORT           = 'COM3'
 SERVO_PORT         = '/dev/cu.usbmodem1201'
 TRIGGER_PORT       = 'COM5'
 

@@ -3,6 +3,9 @@ import os
 
 class SoundPlayer:
     def __init__(self, note_sounds, max_channels=16):
+        
+        pygame.mixer.init()
+
         pygame.mixer.set_num_channels(max_channels)
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 

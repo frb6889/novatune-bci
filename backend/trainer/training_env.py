@@ -7,7 +7,7 @@ from LED_controller import LEDController
 from servo_controller import ServoController
 from song_manager import SongManager
 from ui_renderer import UIRenderer
-from sound_player import SoundPlayer
+from sound_player_old import SoundPlayer
 from input_handler import InputHandler
 from logger import save_midi_log
 from device.trigger_box import TriggerNeuracle
